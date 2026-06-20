@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laboratório de Robótica</title>
+<script src="https://cdn.jsdelivr.net/npm/jscpp/dist/main.js"></script>
+<style>
+/* =========================================================
+   LABORATÓRIO DE ROBÓTICA — sistema de design "Blueprint"
+   Paleta: azul-projeto profundo + papel + âmbar de solda + sinal ciano
+   Tipografia: IBM Plex Sans (texto/título) + IBM Plex Mono (dados/código)
+   ========================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --blueprint-deep:   #0B2E4F;
+  --blueprint-mid:    #123F69;
+  --blueprint-panel:  #163F66;
+  --grid-line:        rgba(120,178,224,0.16);
+  --grid-line-strong: rgba(120,178,224,0.30);
+  --circuit-amber:    #FFB454;
+  --circuit-amber-dim:#9A6B2B;
+  --signal-cyan:      #5BE7D4;
+  --signal-cyan-dim:  #1F6E66;
+  --alert-red:        #FF6B6B;
+  --paper:            #F6F3EA;
+  --paper-line:       #D8CFB9;
+  --ink:              #0B2E4F;
+  --ink-soft:         #41607E;
+  --white:            #FFFFFF;
+  --f-display: 'IBM Plex Sans Condensed', sans-serif;
+  --f-body:    'IBM Plex Sans', sans-serif;
+  --f-mono:    'IBM Plex Mono', monospace;
+  --radius: 3px;
+  --shadow-deep: 0 18px 40px rgba(5,18,32,0.45);
+  --shadow-soft: 0 6px 18px rgba(5,18,32,0.25);
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:var(--f-body);
+  color:var(--white);
+  background:
+    linear-gradient(var(--grid-line) 1px, transparent 1px) 0 0/40px 40px,
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px) 0 0/40px 40px,
+    radial-gradient(ellipse at top, var(--blueprint-mid), var(--blueprint-deep) 70%);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{font-family:var(--f-display);font-weight:700;letter-spacing:.02em;margin:0;}
+a{color:inherit;}
+button{font-family:var(--f-body);cursor:pointer;}
+:focus-visible{outline:2px solid var(--circuit-amber);outline-offset:2px;}
+@media (prefers-reduced-motion: reduce){*{animation-duration:0.01ms !important; transition-duration:0.01ms !important;}}
+.mono{font-family:var(--f-mono);}
+
+/* ---------- estrutura geral ---------- */
+.shell{max-width:1180px;margin:0 auto;padding:28px 24px 60px;}
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 0 26px;border-bottom:1px solid var(--grid-line-strong);margin-bottom:28px;
+}
+.brand{display:flex;align-items:center;gap:12px;}
+.brand-mark{
+  width:38px;height:38px;border:2px solid var(--circuit-amber);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-family:var(--f-mono);
+  font-weight:600;color:var(--circuit-amber);font-size:13px;flex-shrink:0;
+}
+.brand-text small{display:block;font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;color:var(--ink-soft);text-transform:uppercase;}
+.brand-text strong{display:block;font-family:var(--f-display);font-size:19px;letter-spacing:.03em;}
+
+/* ---------- painel estilo esquemático ---------- */
+.panel{
+  position:relative;background:var(--blueprint-panel);
+  border:1px solid var(--grid-line-strong);border-radius:var(--radius);
+  padding:24px;margin-bottom:22px;box-shadow:var(--shadow-soft);
+}
+.panel::before,.panel::after{content:"";position:absolute;width:10px;height:10px;border:1.5px solid var(--circuit-amber);opacity:.85;}
+.panel::before{top:-1px;left:-1px;border-right:none;border-bottom:none;}
+.panel::after{bottom:-1px;right:-1px;border-left:none;border-top:none;}
+.panel-tag{
+  position:absolute;top:-11px;left:18px;background:var(--blueprint-deep);
+  padding:1px 10px;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.14em;
+  color:var(--circuit-amber);text-transform:uppercase;border:1px solid var(--grid-line-strong);
+}
+.panel-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
+.panel-head h2{font-size:20px;}
+.panel-head .hint{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-soft);}
+
+/* ---------- formulários ---------- */
+.field{margin-bottom:16px;}
+.field label{display:block;font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:6px;}
+.field input,.field textarea,.field select{
+  width:100%;padding:11px 12px;border:1px solid var(--paper-line);border-radius:2px;
+  font-family:var(--f-body);font-size:14.5px;color:var(--ink);background:var(--white);
+}
+.field textarea{resize:vertical;min-height:90px;font-family:var(--f-body);}
+.field .lock{font-family:var(--f-mono);font-size:12px;color:var(--ink-soft);background:#ECE8DA;padding:11px 12px;border-radius:2px;border:1px dashed var(--paper-line);}
+
+/* ---------- botões ---------- */
+.btn{
+  display:inline-flex;align-items:center;gap:8px;border:none;border-radius:2px;
+  padding:11px 20px;font-size:13.5px;font-weight:600;letter-spacing:.03em;
+  transition:transform .12s ease, box-shadow .12s ease; text-transform:uppercase;font-family:var(--f-display);
+}
+.btn:active{transform:translateY(1px);}
+.btn-amber{background:var(--circuit-amber);color:#26190A;}
+.btn-amber:hover{box-shadow:0 0 0 3px rgba(255,180,84,.25);}
+.btn-cyan{background:var(--signal-cyan);color:#062B27;}
+.btn-cyan:hover{box-shadow:0 0 0 3px rgba(91,231,212,.25);}
+.btn-ghost{background:transparent;border:1px solid var(--grid-line-strong);color:var(--white);}
+.btn-ghost:hover{border-color:var(--circuit-amber);color:var(--circuit-amber);}
+.btn-danger{background:transparent;border:1px solid var(--alert-red);color:var(--alert-red);}
+.btn-danger:hover{background:rgba(255,107,107,.12);}
+.btn-sm{padding:7px 13px;font-size:11.5px;}
+.btn-block{width:100%;justify-content:center;}
+.btn[disabled]{opacity:.45;cursor:not-allowed;}
+
+/* ---------- abas (tabs) ---------- */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--grid-line-strong);margin-bottom:22px;flex-wrap:wrap;}
+.tab-btn{
+  background:transparent;border:none;padding:12px 18px;
+  font-family:var(--f-display);font-size:14px;letter-spacing:.03em;text-transform:uppercase;
+  border-bottom:3px solid transparent;position:relative;color:#9FC0DC;
+}
+.tab-btn .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--circuit-amber);margin-left:6px;}
+.tab-btn.active{color:var(--white);border-bottom-color:var(--circuit-amber);}
+.tab-btn:hover{color:var(--white);}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;animation:fadeIn .25s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
+/* ---------- cartões / listas ---------- */
+.card{background:var(--blueprint-mid);border:1px solid var(--grid-line);border-radius:2px;padding:16px 18px;margin-bottom:12px;}
+.card-row{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;}
+.card h4{font-size:15px;margin-bottom:4px;}
+.card .meta{font-family:var(--f-mono);font-size:11px;color:#9FC0DC;text-transform:uppercase;letter-spacing:.06em;}
+.card p{font-size:13.5px;line-height:1.55;color:#DCEBF7;margin:8px 0 0;}
+.card-actions{display:flex;gap:8px;margin-top:10px;}
+
+.badge{display:inline-block;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:20px;}
+.badge-new{background:rgba(255,180,84,.18);color:var(--circuit-amber);border:1px solid var(--circuit-amber-dim);}
+.badge-ok{background:rgba(91,231,212,.15);color:var(--signal-cyan);border:1px solid var(--signal-cyan-dim);}
+.badge-err{background:rgba(255,107,107,.15);color:var(--alert-red);border:1px solid #8A3A3A;}
+
+.empty{
+  text-align:center;padding:40px 20px;color:#9FC0DC;font-family:var(--f-mono);font-size:13px;
+  border:1px dashed var(--grid-line-strong);border-radius:3px;
+}
+
+/* ---------- console / código ---------- */
+.code-editor{
+  width:100%;min-height:260px;background:#091B2C;color:#D8F0E8;border:1px solid var(--grid-line-strong);
+  border-radius:2px;padding:14px;font-family:var(--f-mono);font-size:13.5px;line-height:1.6;resize:vertical;
+  tab-size:4;
+}
+.console-out{
+  background:#04111C;border:1px solid var(--grid-line-strong);border-radius:2px;padding:14px;
+  font-family:var(--f-mono);font-size:13px;color:#5BE7D4;min-height:110px;white-space:pre-wrap;
+  word-break:break-word;
+}
+.console-out.has-error{color:var(--alert-red);}
+
+/* ---------- grade / nota ---------- */
+.grade-dial{
+  width:84px;height:84px;border-radius:50%;border:3px solid var(--circuit-amber);
+  display:flex;align-items:center;justify-content:center;flex-direction:column;flex-shrink:0;
+  background:rgba(255,180,84,.08);
+}
+.grade-dial strong{font-family:var(--f-display);font-size:24px;line-height:1;}
+.grade-dial span{font-family:var(--f-mono);font-size:9px;color:var(--ink-soft);letter-spacing:.08em;}
+
+/* ---------- toast ---------- */
+#toast{position:fixed;bottom:22px;right:22px;display:flex;flex-direction:column;gap:8px;z-index:999;}
+.toast-item{
+  background:var(--blueprint-panel);border:1px solid var(--circuit-amber);color:var(--white);
+  padding:11px 16px;border-radius:2px;font-size:13px;box-shadow:var(--shadow-deep);
+  font-family:var(--f-body);min-width:220px;animation:slideIn .2s ease;
+}
+@keyframes slideIn{from{opacity:0;transform:translateX(16px);}to{opacity:1;transform:translateX(0);}}
+
+/* ---------- utilitários ---------- */
+.row{display:flex;gap:14px;flex-wrap:wrap;}
+.muted{color:#9FC0DC;}
+.center{text-align:center;}
+.scroll-list{max-height:520px;overflow-y:auto;padding-right:4px;}
+.scroll-list::-webkit-scrollbar{width:6px;}
+.scroll-list::-webkit-scrollbar-thumb{background:var(--grid-line-strong);border-radius:4px;}
+
+footer.foot{text-align:center;color:#5E84A6;font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;margin-top:50px;text-transform:uppercase;}
+
+@media (max-width:720px){
+  .grid-2{grid-template-columns:1fr !important;}
+  .topbar{flex-direction:column;align-items:flex-start;gap:14px;}
+}
+
+/* ---------- troca de telas (todo o site é UM arquivo só) ---------- */
+.view{display:none;}
+.view.active{display:block;animation:fadeIn .2s ease;}
+
+/* ---------- tela inicial ---------- */
+.hero{min-height:74vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 20px;}
+.hero-eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.22em;color:var(--circuit-amber);text-transform:uppercase;margin-bottom:18px;}
+.hero h1{font-size:clamp(34px,6vw,58px);line-height:1.05;max-width:780px;}
+.hero h1 em{font-style:normal;color:var(--circuit-amber);}
+.hero p.lead{max-width:560px;color:#BBD6EC;font-size:16px;margin:18px 0 40px;line-height:1.6;}
+.choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:760px;width:100%;}
+@media (max-width:640px){.choice-grid{grid-template-columns:1fr;}}
+.choice-card{
+  appearance:none;-webkit-appearance:none;background:var(--blueprint-panel);border:1px solid var(--grid-line-strong);border-radius:3px;
+  padding:28px 24px;text-align:left;position:relative;transition:border-color .15s ease, transform .15s ease;
+  display:block;width:100%;font:inherit;color:inherit;cursor:pointer;
+}
+.choice-card:hover{border-color:var(--circuit-amber);transform:translateY(-3px);}
+.choice-card .tag{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.14em;color:var(--circuit-amber);text-transform:uppercase;}
+.choice-card h3{font-size:21px;margin:10px 0 8px;}
+.choice-card p{font-size:13.5px;color:#BBD6EC;line-height:1.55;margin:0 0 14px;}
+.choice-card .go{font-family:var(--f-mono);font-size:12px;color:var(--white);letter-spacing:.06em;}
+.choice-card .go::after{content:" →";}
+.schematic-strip{display:flex;gap:26px;justify-content:center;margin-top:54px;flex-wrap:wrap;}
+.schem-item{font-family:var(--f-mono);font-size:11px;color:#5E84A6;letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center;gap:8px;}
+.schem-item::before{content:"";width:7px;height:7px;border:1.5px solid var(--circuit-amber);transform:rotate(45deg);display:inline-block;}
+
+/* ---------- cadastro / login ---------- */
+.auth-wrap{max-width:480px;margin:50px auto;}
+.back-link{font-family:var(--f-mono);font-size:12px;color:#9FC0DC;text-decoration:none;display:inline-block;margin-bottom:22px;background:none;border:none;cursor:pointer;padding:0;}
+.back-link:hover{color:var(--circuit-amber);}
+.switch-line{text-align:center;margin-top:16px;font-size:13px;color:#9FC0DC;}
+.switch-line button{color:var(--circuit-amber);text-decoration:none;font-weight:600;background:none;border:none;cursor:pointer;padding:0;font-size:13px;font-family:var(--f-body);}
+
+/* ---------- área do aluno ---------- */
+.student-head{display:flex;align-items:center;gap:14px;}
+.avatar{width:46px;height:46px;border-radius:50%;background:var(--circuit-amber);color:#26190A;display:flex;align-items:center;justify-content:center;font-family:var(--f-display);font-weight:700;font-size:16px;flex-shrink:0;}
+.grid-2{display:grid;grid-template-columns:1.3fr 1fr;gap:20px;}
+.template-row{display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap;}
+.template-row select{padding:8px 10px;border-radius:2px;border:1px solid var(--grid-line-strong);background:var(--blueprint-mid);color:var(--white);font-family:var(--f-mono);font-size:12.5px;}
+.run-row{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;}
+
+/* ---------- painel do tutor ---------- */
+.layout{display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start;}
+@media (max-width:860px){.layout{grid-template-columns:1fr;}}
+.student-list-item{display:flex;align-items:center;gap:10px;padding:11px 10px;border-radius:2px;cursor:pointer;border:1px solid transparent;margin-bottom:4px;background:none;width:100%;text-align:left;font:inherit;color:inherit;}
+.student-list-item:hover{background:rgba(255,255,255,.04);}
+.student-list-item.active{background:rgba(255,180,84,.1);border-color:var(--circuit-amber-dim);}
+.mini-avatar{width:32px;height:32px;border-radius:50%;background:var(--blueprint-mid);border:1px solid var(--grid-line-strong);display:flex;align-items:center;justify-content:center;font-family:var(--f-mono);font-size:12px;flex-shrink:0;}
+.student-list-item .name{font-size:13.5px;flex:1;}
+.student-list-item .name small{display:block;font-family:var(--f-mono);font-size:10px;color:#9FC0DC;}
+.sub-tabs{display:flex;gap:4px;margin-bottom:18px;flex-wrap:wrap;}
+.sub-tab-btn{background:rgba(255,255,255,.04);border:1px solid var(--grid-line-strong);color:#BBD6EC;padding:8px 14px;font-family:var(--f-mono);font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;border-radius:2px;}
+.sub-tab-btn.active{background:var(--circuit-amber);color:#26190A;border-color:var(--circuit-amber);}
+.stat-box{background:var(--blueprint-mid);border:1px solid var(--grid-line);border-radius:2px;padding:14px 16px;text-align:center;flex:1;}
+.stat-box strong{display:block;font-family:var(--f-display);font-size:24px;}
+.stat-box span{font-family:var(--f-mono);font-size:10.5px;color:#9FC0DC;letter-spacing:.06em;text-transform:uppercase;}
+.feedback-form textarea{min-height:70px;}
+.student-detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:18px;}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     TELA 1 — ACESSO (escolher aluno ou tutor)
+     ============================================================ -->
+<div id="view-landing" class="view active shell">
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">R<span style="font-size:9px">x</span></div>
+      <div class="brand-text"><small>FIG. 00 — painel de acesso</small><strong>Laboratório de Robótica</strong></div>
+    </div>
+    <div class="muted mono" style="font-size:12px;">v1.1 · armazenamento local</div>
+  </div>
+
+  <div class="hero">
+    <div class="hero-eyebrow">Caderno · Debugator · Acompanhamento</div>
+    <h1>O laboratório digital onde <em>código</em>, <em>anotação</em> e <em>orientação</em> moram no mesmo lugar.</h1>
+    <p class="lead">Cada prática vira um registro: o que você escreveu, o código que testou e o que o tutor comentou sobre o seu progresso. Escolha como você vai entrar.</p>
+
+    <div class="choice-grid">
+      <button type="button" class="choice-card" id="btn-ir-cadastro">
+        <div class="tag">Acesso 01</div>
+        <h3>Sou estudante</h3>
+        <p>Crie seu cadastro com nome e sobrenome, registre suas práticas no caderno digital, teste códigos em C++ no Debugator e acompanhe as notas e comentários do seu tutor.</p>
+        <span class="go">Cadastrar ou entrar</span>
+      </button>
+      <button type="button" class="choice-card" id="btn-ir-tutor">
+        <div class="tag">Acesso 02</div>
+        <h3>Sou tutor</h3>
+        <p>Acompanhe todos os estudantes cadastrados, revise cadernos e códigos enviados, deixe comentários e lance notas diretamente no perfil de cada aluno.</p>
+        <span class="go">Entrar no painel do tutor</span>
+      </button>
+    </div>
+
+    <div class="schematic-strip">
+      <div class="schem-item">Cadastro automático</div>
+      <div class="schem-item">Senha padrão: robotica1234</div>
+      <div class="schem-item">C++ no navegador</div>
+      <div class="schem-item">Notas em tempo real</div>
+    </div>
+  </div>
+
+  <footer class="foot">Laboratório de Robótica · ambiente de prática e orientação</footer>
+</div>
+
+<!-- ============================================================
+     TELA 2 — CADASTRO DO ESTUDANTE
+     ============================================================ -->
+<div id="view-cadastro" class="view shell auth-wrap">
+  <button type="button" class="back-link" id="btn-voltar-cadastro">← voltar ao painel de acesso</button>
+
+  <div class="panel">
+    <span class="panel-tag">Fig. 01 — novo cadastro</span>
+    <div class="panel-head"><h2>Cadastro do estudante</h2></div>
+    <p class="muted" style="font-size:13.5px;margin-top:-8px;margin-bottom:20px;">
+      Preencha seu nome e sobrenome. Sua senha já vem definida — é a senha padrão do laboratório, igual para toda a turma.
+    </p>
+
+    <form id="form-cadastro">
+      <div class="field">
+        <label for="cad-nome">Nome</label>
+        <input type="text" id="cad-nome" placeholder="Ex.: João" autocomplete="given-name" required>
+      </div>
+      <div class="field">
+        <label for="cad-sobrenome">Sobrenome</label>
+        <input type="text" id="cad-sobrenome" placeholder="Ex.: Silva" autocomplete="family-name" required>
+      </div>
+      <div class="field">
+        <label>Senha padrão</label>
+        <div class="lock mono">robotica1234 <span style="opacity:.6">(fixa, não precisa digitar)</span></div>
+      </div>
+      <button type="submit" class="btn btn-amber btn-block">Criar meu cadastro</button>
+    </form>
+
+    <div class="switch-line">Já tem cadastro? <button type="button" id="btn-ir-login-de-cadastro">Entrar no laboratório</button></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     TELA 3 — LOGIN DO ESTUDANTE
+     ============================================================ -->
+<div id="view-login" class="view shell auth-wrap">
+  <button type="button" class="back-link" id="btn-voltar-login">← voltar ao painel de acesso</button>
+
+  <div class="panel">
+    <span class="panel-tag">Fig. 01 — entrada</span>
+    <div class="panel-head"><h2>Entrar no laboratório</h2></div>
+
+    <form id="form-login">
+      <div class="field">
+        <label for="log-nome">Nome</label>
+        <input type="text" id="log-nome" placeholder="Ex.: João" autocomplete="given-name" required>
+      </div>
+      <div class="field">
+        <label for="log-sobrenome">Sobrenome</label>
+        <input type="text" id="log-sobrenome" placeholder="Ex.: Silva" autocomplete="family-name" required>
+      </div>
+      <div class="field">
+        <label for="log-senha">Senha</label>
+        <input type="password" id="log-senha" placeholder="robotica1234" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="btn btn-amber btn-block">Entrar</button>
+    </form>
+
+    <div class="switch-line">Ainda não tem cadastro? <button type="button" id="btn-ir-cadastro-de-login">Cadastre-se</button></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     TELA 4 — ÁREA DO ESTUDANTE
+     ============================================================ -->
+<div id="view-aluno" class="view shell">
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">R</div>
+      <div class="brand-text"><small>Laboratório de Robótica</small><strong>Meu laboratório</strong></div>
+    </div>
+    <div class="student-head">
+      <div class="avatar" id="avatar">--</div>
+      <div>
+        <div id="nome-completo" style="font-family:var(--f-display);font-size:15px;">Carregando…</div>
+        <button class="btn btn-ghost btn-sm" id="btn-sair" style="margin-top:4px;">Sair</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="caderno">Caderno Digital</button>
+    <button class="tab-btn" data-tab="debugator">Debugator</button>
+    <button class="tab-btn" data-tab="feedback">Feedback do Tutor <span class="dot" id="dot-feedback" style="display:none;"></span></button>
+  </div>
+
+  <!-- CADERNO -->
+  <div class="tab-panel active" id="panel-caderno">
+    <div class="panel">
+      <span class="panel-tag">Fig. 02 — registro de prática</span>
+      <div class="panel-head">
+        <h2>Nova anotação</h2>
+        <span class="hint">salvo no seu histórico, visível para o tutor</span>
+      </div>
+      <form id="form-nota">
+        <input type="hidden" id="editando-id">
+        <div class="field">
+          <label for="nota-titulo">Título da prática</label>
+          <input type="text" id="nota-titulo" placeholder="Ex.: Calibração do sensor ultrassônico" required>
+        </div>
+        <div class="field">
+          <label for="nota-conteudo">O que você observou / fez / aprendeu hoje?</label>
+          <textarea id="nota-conteudo" placeholder="Descreva o experimento, dificuldades, resultados..." required></textarea>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button type="submit" class="btn btn-amber" id="btn-salvar-nota">Salvar anotação</button>
+          <button type="button" class="btn btn-ghost" id="btn-cancelar-edicao" style="display:none;">Cancelar edição</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="panel">
+      <span class="panel-tag">Fig. 03 — histórico do caderno</span>
+      <div class="panel-head"><h2>Minhas anotações</h2></div>
+      <div class="scroll-list" id="lista-caderno"></div>
+    </div>
+  </div>
+
+  <!-- DEBUGATOR -->
+  <div class="tab-panel" id="panel-debugator">
+    <div class="panel">
+      <span class="panel-tag">Fig. 04 — testes de código</span>
+      <div class="panel-head">
+        <h2>Debugator · C++</h2>
+        <span class="hint">interpretação de C++ no navegador (subconjunto da linguagem)</span>
+      </div>
+
+      <div class="template-row">
+        <label class="mono" style="font-size:11px;color:#9FC0DC;">CARREGAR MODELO:</label>
+        <select id="select-template"></select>
+      </div>
+
+      <div class="field" style="margin-bottom:10px;">
+        <label for="code-titulo">Título deste código</label>
+        <input type="text" id="code-titulo" placeholder="Ex.: Teste do laço do braço robótico">
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <label class="mono" style="font-size:11px;color:#9FC0DC;display:block;margin-bottom:6px;">CÓDIGO (C++)</label>
+          <textarea class="code-editor" id="code-input" spellcheck="false"></textarea>
+          <div class="run-row">
+            <button class="btn btn-cyan" id="btn-run">▶ Executar</button>
+            <button class="btn btn-amber" id="btn-save-code">Salvar no meu histórico</button>
+          </div>
+        </div>
+        <div>
+          <label class="mono" style="font-size:11px;color:#9FC0DC;display:block;margin-bottom:6px;">ENTRADA (stdin) — opcional, uma por linha</label>
+          <textarea class="code-editor" id="code-stdin" style="min-height:90px;" placeholder="Ex.: 10&#10;20"></textarea>
+          <label class="mono" style="font-size:11px;color:#9FC0DC;display:block;margin:14px 0 6px;">SAÍDA DO CONSOLE</label>
+          <div class="console-out" id="console-out">Pronto. Clique em "Executar" para testar seu código.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <span class="panel-tag">Fig. 05 — histórico de execuções</span>
+      <div class="panel-head"><h2>Códigos salvos</h2></div>
+      <div class="scroll-list" id="lista-codigo"></div>
+    </div>
+  </div>
+
+  <!-- FEEDBACK -->
+  <div class="tab-panel" id="panel-feedback">
+    <div class="panel">
+      <span class="panel-tag">Fig. 06 — avaliação</span>
+      <div class="panel-head"><h2>Avaliação do tutor</h2></div>
+      <div class="row" style="align-items:center;">
+        <div class="grade-dial" id="nota-geral-dial"><strong>—</strong><span>NOTA</span></div>
+        <p class="muted" style="max-width:480px;font-size:13.5px;">
+          Aqui aparecem os comentários e a nota que seu tutor deixar sobre o seu caderno e seus códigos. Continue registrando suas práticas para receber orientações.
+        </p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <span class="panel-tag">Fig. 07 — comentários</span>
+      <div class="panel-head"><h2>Comentários recebidos</h2></div>
+      <div class="scroll-list" id="lista-feedback"></div>
+    </div>
+  </div>
+
+  <footer class="foot">Laboratório de Robótica · área do estudante</footer>
+</div>
+
+<!-- ============================================================
+     TELA 5 — PAINEL DO TUTOR
+     ============================================================ -->
+<div id="view-tutor" class="view shell">
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">T</div>
+      <div class="brand-text"><small>Laboratório de Robótica</small><strong>Painel do tutor</strong></div>
+    </div>
+    <button class="btn btn-ghost btn-sm" id="btn-sair-tutor">Sair do painel</button>
+  </div>
+
+  <div class="layout">
+    <div class="panel" style="padding:18px;">
+      <span class="panel-tag">Fig. 08 — turma</span>
+      <div class="panel-head" style="margin-bottom:10px;"><h2 style="font-size:16px;">Estudantes</h2></div>
+      <input type="text" id="busca-aluno" placeholder="Buscar por nome..." style="width:100%;padding:9px 10px;margin-bottom:12px;border-radius:2px;border:1px solid var(--grid-line-strong);background:rgba(255,255,255,.05);color:var(--white);font-size:13px;">
+      <div class="scroll-list" id="lista-alunos" style="max-height:560px;"></div>
+    </div>
+
+    <div id="area-detalhe">
+      <div class="panel center" style="padding:60px 20px;">
+        <span class="panel-tag">Fig. 09 — detalhe</span>
+        <p class="muted">Selecione um estudante na lista ao lado para ver seu caderno, seus códigos e deixar comentários e nota.</p>
+      </div>
+    </div>
+  </div>
+
+  <footer class="foot">Laboratório de Robótica · painel do tutor — acesso direto, sem autenticação</footer>
+</div>
+
+<script>
+/* =========================================================
+   UTILS — funções compartilhadas
+   ========================================================= */
+function toast(msg, tipo) {
+  let box = document.getElementById('toast');
+  if (!box) { box = document.createElement('div'); box.id = 'toast'; document.body.appendChild(box); }
+  const item = document.createElement('div');
+  item.className = 'toast-item';
+  if (tipo === 'erro') item.style.borderColor = 'var(--alert-red)';
+  if (tipo === 'ok') item.style.borderColor = 'var(--signal-cyan)';
+  item.textContent = msg;
+  box.appendChild(item);
+  setTimeout(() => item.remove(), 3200);
+}
+function fmtData(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }) +
+         ' às ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+}
+function fmtDataCurta(iso) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+}
+function iniciais(nome, sobrenome) {
+  return ((nome || '?')[0] + (sobrenome ? sobrenome[0] : '')).toUpperCase();
+}
+function escapeHtml(str) {
+  return (str || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function jsLit(str) {
+  return JSON.stringify(str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+}
+const SESSION_KEY = 'lab_session_student_id';
+function setSessionStudent(id) { sessionStorage.setItem(SESSION_KEY, id); }
+function getSessionStudent() { return sessionStorage.getItem(SESSION_KEY); }
+function clearSessionStudent() { sessionStorage.removeItem(SESSION_KEY); }
+const SENHA_PADRAO = 'robotica1234';
+
+/* =========================================================
+   DB — camada de dados (hoje: localStorage / depois: Firebase)
+   ========================================================= */
+const DB = (() => {
+  const KEYS = { students: 'lab_students', notebook: 'lab_notebook', code: 'lab_code', feedback: 'lab_feedback', review: 'lab_review' };
+  function read(key) { try { return JSON.parse(localStorage.getItem(key)) || []; } catch (e) { return []; } }
+  function write(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
+  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+  function norm(s) { return (s || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+
+  function listStudents() { return Promise.resolve(read(KEYS.students).sort((a, b) => a.nome.localeCompare(b.nome))); }
+  function getStudent(id) { return Promise.resolve(read(KEYS.students).find(x => x.id === id) || null); }
+  function findStudentByName(nome, sobrenome) {
+    return Promise.resolve(read(KEYS.students).find(x => norm(x.nome) === norm(nome) && norm(x.sobrenome) === norm(sobrenome)) || null);
+  }
+  function createStudent({ nome, sobrenome, senha }) {
+    return findStudentByName(nome, sobrenome).then(existing => {
+      if (existing) return { ok: false, motivo: 'JA_EXISTE' };
+      const students = read(KEYS.students);
+      const novo = { id: uid(), nome: nome.trim(), sobrenome: sobrenome.trim(), senha, criadoEm: new Date().toISOString(), notaGeral: null };
+      students.push(novo);
+      write(KEYS.students, students);
+      return { ok: true, student: novo };
+    });
+  }
+  function verifyLogin(nome, sobrenome, senha) {
+    return findStudentByName(nome, sobrenome).then(s => {
+      if (!s) return { ok: false, motivo: 'NAO_ENCONTRADO' };
+      if (s.senha !== senha) return { ok: false, motivo: 'SENHA_INCORRETA' };
+      return { ok: true, student: s };
+    });
+  }
+  function setNotaGeral(studentId, nota) {
+    const students = read(KEYS.students);
+    const i = students.findIndex(s => s.id === studentId);
+    if (i === -1) return Promise.resolve({ ok: false });
+    students[i].notaGeral = nota;
+    write(KEYS.students, students);
+    return Promise.resolve({ ok: true, student: students[i] });
+  }
+  function listNotebook(studentId) {
+    return Promise.resolve(read(KEYS.notebook).filter(n => n.studentId === studentId).sort((a, b) => new Date(b.atualizadoEm) - new Date(a.atualizadoEm)));
+  }
+  function addNotebookEntry(studentId, { titulo, conteudo }) {
+    const list = read(KEYS.notebook);
+    const entry = { id: uid(), studentId, titulo: titulo.trim(), conteudo, criadoEm: new Date().toISOString(), atualizadoEm: new Date().toISOString() };
+    list.push(entry); write(KEYS.notebook, list);
+    return Promise.resolve(entry);
+  }
+  function updateNotebookEntry(entryId, { titulo, conteudo }) {
+    const list = read(KEYS.notebook);
+    const i = list.findIndex(e => e.id === entryId);
+    if (i === -1) return Promise.resolve(null);
+    list[i].titulo = titulo.trim(); list[i].conteudo = conteudo; list[i].atualizadoEm = new Date().toISOString();
+    write(KEYS.notebook, list);
+    return Promise.resolve(list[i]);
+  }
+  function deleteNotebookEntry(entryId) {
+    write(KEYS.notebook, read(KEYS.notebook).filter(e => e.id !== entryId));
+    return Promise.resolve({ ok: true });
+  }
+  function listCode(studentId) {
+    return Promise.resolve(read(KEYS.code).filter(c => c.studentId === studentId).sort((a, b) => new Date(b.criadoEm) - new Date(a.criadoEm)));
+  }
+  function addCodeSnapshot(studentId, { titulo, codigo, saida, status }) {
+    const list = read(KEYS.code);
+    const item = { id: uid(), studentId, titulo: (titulo || 'Sem título').trim(), codigo, saida, status, criadoEm: new Date().toISOString() };
+    list.push(item); write(KEYS.code, list);
+    return Promise.resolve(item);
+  }
+  function deleteCodeSnapshot(id) {
+    write(KEYS.code, read(KEYS.code).filter(c => c.id !== id));
+    return Promise.resolve({ ok: true });
+  }
+  function listFeedback(studentId) {
+    return Promise.resolve(read(KEYS.feedback).filter(f => f.studentId === studentId).sort((a, b) => new Date(b.criadoEm) - new Date(a.criadoEm)));
+  }
+  function addFeedback(studentId, { tipo, refId, refTitulo, comentario, nota }) {
+    const list = read(KEYS.feedback);
+    const item = { id: uid(), studentId, tipo, refId: refId || null, refTitulo: refTitulo || null, comentario, nota: (nota === undefined ? null : nota), criadoEm: new Date().toISOString() };
+    list.push(item); write(KEYS.feedback, list);
+    return Promise.resolve(item);
+  }
+  function deleteFeedback(id) {
+    write(KEYS.feedback, read(KEYS.feedback).filter(f => f.id !== id));
+    return Promise.resolve({ ok: true });
+  }
+  function markReviewed(studentId) {
+    const map = JSON.parse(localStorage.getItem(KEYS.review) || '{}');
+    map[studentId] = new Date().toISOString();
+    localStorage.setItem(KEYS.review, JSON.stringify(map));
+    return Promise.resolve();
+  }
+  function getLastReviewed(studentId) {
+    const map = JSON.parse(localStorage.getItem(KEYS.review) || '{}');
+    return Promise.resolve(map[studentId] || null);
+  }
+  function studentStats(studentId) {
+    return Promise.all([listNotebook(studentId), listCode(studentId), listFeedback(studentId), getLastReviewed(studentId)])
+      .then(([notebook, code, feedback, lastReviewed]) => {
+        const lastActivityDates = [...notebook.map(n => n.atualizadoEm), ...code.map(c => c.criadoEm)];
+        const lastActivity = lastActivityDates.sort().reverse()[0] || null;
+        const hasNew = lastReviewed ? (lastActivity && new Date(lastActivity) > new Date(lastReviewed)) : (lastActivityDates.length > 0);
+        return { totalNotebook: notebook.length, totalCode: code.length, totalFeedback: feedback.length, lastActivity, hasNew: !!hasNew };
+      });
+  }
+
+  return {
+    listStudents, getStudent, findStudentByName, createStudent, verifyLogin, setNotaGeral,
+    listNotebook, addNotebookEntry, updateNotebookEntry, deleteNotebookEntry,
+    listCode, addCodeSnapshot, deleteCodeSnapshot,
+    listFeedback, addFeedback, deleteFeedback,
+    markReviewed, getLastReviewed, studentStats,
+  };
+})();
+
+/* =========================================================
+   MOTOR DE C++ (JSCPP via CDN)
+   ========================================================= */
+const CppEngine = (() => {
+  function disponivel() { return typeof window.JSCPP !== 'undefined'; }
+  function rodar(codigo, entradaPadrao) {
+    return new Promise((resolve) => {
+      if (!disponivel()) {
+        resolve({ ok: false, saida: '', erro: 'O motor de C++ não carregou (sem conexão com a internet?). Verifique a rede e atualize a página.' });
+        return;
+      }
+      let saida = '';
+      const inicio = performance.now();
+      try {
+        const config = { stdio: { write: function (s) { saida += s; return s.length; }, drain: function () { return Promise.resolve(); } } };
+        const exitCode = window.JSCPP.run(codigo, entradaPadrao || '', config);
+        const tempo = (performance.now() - inicio).toFixed(1);
+        resolve({ ok: true, saida: saida || '(o programa não imprimiu nada)', exitCode, tempoMs: tempo });
+      } catch (e) {
+        resolve({ ok: false, saida, erro: (e && e.message) ? e.message : String(e) });
+      }
+    });
+  }
+  const TEMPLATES = {
+    'Olá, mundo': `#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << "Ola, mundo!" << endl;\n    return 0;\n}\n`,
+    'Soma de dois números': `#include <iostream>\nusing namespace std;\n\nint main() {\n    int a, b;\n    cout << "Digite dois numeros: ";\n    cin >> a >> b;\n    cout << "Soma = " << (a + b) << endl;\n    return 0;\n}\n`,
+    'Laço for': `#include <iostream>\nusing namespace std;\n\nint main() {\n    for (int i = 1; i <= 5; i++) {\n        cout << "Volta " << i << endl;\n    }\n    return 0;\n}\n`,
+    'Vetor (array)': `#include <iostream>\nusing namespace std;\n\nint main() {\n    int sensores[5] = {12, 45, 7, 88, 3};\n    int soma = 0;\n    for (int i = 0; i < 5; i++) {\n        soma += sensores[i];\n    }\n    cout << "Soma das leituras: " << soma << endl;\n    return 0;\n}\n`,
+    'Função personalizada': `#include <iostream>\nusing namespace std;\n\nint dobro(int x) {\n    return x * 2;\n}\n\nint main() {\n    int valor = 21;\n    cout << "O dobro de " << valor << " e " << dobro(valor) << endl;\n    return 0;\n}\n`,
+  };
+  return { disponivel, rodar, TEMPLATES };
+})();
+
+/* =========================================================
+   ROTEADOR — troca de telas dentro do mesmo arquivo
+   ========================================================= */
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'instant' });
+  if (name === 'tutor') initTutorView();
+}
+
+document.getElementById('btn-ir-cadastro').addEventListener('click', () => showView('cadastro'));
+document.getElementById('btn-ir-tutor').addEventListener('click', () => showView('tutor'));
+document.getElementById('btn-voltar-cadastro').addEventListener('click', () => showView('landing'));
+document.getElementById('btn-voltar-login').addEventListener('click', () => showView('landing'));
+document.getElementById('btn-ir-login-de-cadastro').addEventListener('click', () => showView('login'));
+document.getElementById('btn-ir-cadastro-de-login').addEventListener('click', () => showView('cadastro'));
+document.getElementById('btn-sair-tutor').addEventListener('click', () => showView('landing'));
+
+function entrarComoAluno(studentId) {
+  setSessionStudent(studentId);
+  initAlunoView(studentId);
+  showView('aluno');
+}
+
+/* =========================================================
+   CADASTRO / LOGIN
+   ========================================================= */
+document.getElementById('form-cadastro').addEventListener('submit', function (e) {
+  e.preventDefault();
+  const nome = document.getElementById('cad-nome').value.trim();
+  const sobrenome = document.getElementById('cad-sobrenome').value.trim();
+  if (!nome || !sobrenome) { toast('Preencha nome e sobrenome.', 'erro'); return; }
+
+  DB.createStudent({ nome, sobrenome, senha: SENHA_PADRAO }).then(res => {
+    if (!res.ok) { toast('Já existe um cadastro com esse nome e sobrenome. Faça login.', 'erro'); return; }
+    toast('Cadastro criado! Bem-vindo(a) ao laboratório.', 'ok');
+    document.getElementById('form-cadastro').reset();
+    setTimeout(() => entrarComoAluno(res.student.id), 500);
+  });
+});
+
+document.getElementById('form-login').addEventListener('submit', function (e) {
+  e.preventDefault();
+  const nome = document.getElementById('log-nome').value.trim();
+  const sobrenome = document.getElementById('log-sobrenome').value.trim();
+  const senha = document.getElementById('log-senha').value;
+
+  DB.verifyLogin(nome, sobrenome, senha).then(res => {
+    if (!res.ok) {
+      if (res.motivo === 'NAO_ENCONTRADO') toast('Não encontramos esse cadastro. Confira o nome ou cadastre-se.', 'erro');
+      else toast('Senha incorreta.', 'erro');
+      return;
+    }
+    document.getElementById('form-login').reset();
+    entrarComoAluno(res.student.id);
+  });
+});
+
+/* =========================================================
+   ÁREA DO ESTUDANTE
+   ========================================================= */
+let alunoAtualId = null;
+
+function initAlunoView(studentId) {
+  alunoAtualId = studentId;
+  DB.getStudent(studentId).then(s => {
+    if (!s) { clearSessionStudent(); showView('login'); return; }
+    document.getElementById('avatar').textContent = iniciais(s.nome, s.sobrenome);
+    document.getElementById('nome-completo').textContent = s.nome + ' ' + s.sobrenome;
+    carregarCaderno();
+    carregarCodigos();
+    carregarFeedback();
+  });
+}
+
+document.getElementById('btn-sair').addEventListener('click', () => {
+  clearSessionStudent();
+  alunoAtualId = null;
+  showView('landing');
+});
+
+document.querySelectorAll('#view-aluno .tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#view-aluno .tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#view-aluno .tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    if (btn.dataset.tab === 'feedback' && alunoAtualId) {
+      localStorage.setItem('lab_lastseen_' + alunoAtualId, new Date().toISOString());
+      document.getElementById('dot-feedback').style.display = 'none';
+    }
+  });
+});
+
+const formNota = document.getElementById('form-nota');
+const btnCancelarEdicao = document.getElementById('btn-cancelar-edicao');
+
+formNota.addEventListener('submit', e => {
+  e.preventDefault();
+  const titulo = document.getElementById('nota-titulo').value.trim();
+  const conteudo = document.getElementById('nota-conteudo').value.trim();
+  const editandoId = document.getElementById('editando-id').value;
+  if (!titulo || !conteudo) { toast('Preencha o título e a anotação.', 'erro'); return; }
+
+  const acao = editandoId
+    ? DB.updateNotebookEntry(editandoId, { titulo, conteudo })
+    : DB.addNotebookEntry(alunoAtualId, { titulo, conteudo });
+
+  acao.then(() => {
+    toast(editandoId ? 'Anotação atualizada.' : 'Anotação salva no seu caderno.', 'ok');
+    formNota.reset();
+    document.getElementById('editando-id').value = '';
+    btnCancelarEdicao.style.display = 'none';
+    carregarCaderno();
+  });
+});
+
+btnCancelarEdicao.addEventListener('click', () => {
+  formNota.reset();
+  document.getElementById('editando-id').value = '';
+  btnCancelarEdicao.style.display = 'none';
+});
+
+function carregarCaderno() {
+  DB.listNotebook(alunoAtualId).then(entries => {
+    const el = document.getElementById('lista-caderno');
+    if (!entries.length) {
+      el.innerHTML = '<div class="empty">Você ainda não fez nenhuma anotação. Comece registrando a sua primeira prática acima.</div>';
+      return;
+    }
+    el.innerHTML = entries.map(en => `
+      <div class="card">
+        <div class="card-row">
+          <div><h4>${escapeHtml(en.titulo)}</h4><span class="meta">Atualizado em ${fmtData(en.atualizadoEm)}</span></div>
+        </div>
+        <p>${escapeHtml(en.conteudo)}</p>
+        <div class="card-actions">
+          <button class="btn btn-ghost btn-sm" onclick="editarNota('${en.id}')">Editar</button>
+          <button class="btn btn-danger btn-sm" onclick="excluirNota('${en.id}')">Excluir</button>
+        </div>
+      </div>
+    `).join('');
+  });
+}
+
+window.editarNota = function (id) {
+  DB.listNotebook(alunoAtualId).then(entries => {
+    const en = entries.find(e => e.id === id);
+    if (!en) return;
+    document.getElementById('nota-titulo').value = en.titulo;
+    document.getElementById('nota-conteudo').value = en.conteudo;
+    document.getElementById('editando-id').value = en.id;
+    btnCancelarEdicao.style.display = 'inline-flex';
+    document.getElementById('panel-caderno').scrollIntoView({ behavior: 'smooth' });
+  });
+};
+
+window.excluirNota = function (id) {
+  if (!confirm('Excluir esta anotação? Essa ação não pode ser desfeita.')) return;
+  DB.deleteNotebookEntry(id).then(() => { toast('Anotação excluída.'); carregarCaderno(); });
+};
+
+const selectTemplate = document.getElementById('select-template');
+selectTemplate.innerHTML = '<option value="">— escolher um modelo —</option>' +
+  Object.keys(CppEngine.TEMPLATES).map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('');
+
+selectTemplate.addEventListener('change', () => {
+  const t = selectTemplate.value;
+  if (t && CppEngine.TEMPLATES[t]) {
+    document.getElementById('code-input').value = CppEngine.TEMPLATES[t];
+    document.getElementById('code-titulo').value = t;
+  }
+});
+
+document.getElementById('btn-run').addEventListener('click', () => {
+  const codigo = document.getElementById('code-input').value;
+  const stdin = document.getElementById('code-stdin').value;
+  const out = document.getElementById('console-out');
+  if (!codigo.trim()) { toast('Escreva ou carregue um código antes de executar.', 'erro'); return; }
+  out.classList.remove('has-error');
+  out.textContent = 'Executando...';
+
+  CppEngine.rodar(codigo, stdin).then(res => {
+    if (!res.ok) {
+      out.classList.add('has-error');
+      out.textContent = '✕ Erro de compilação/execução:\n' + res.erro;
+    } else {
+      out.classList.remove('has-error');
+      out.textContent = res.saida + `\n\n[ executado em ${res.tempoMs} ms · código de saída ${res.exitCode} ]`;
+    }
+  });
+});
+
+document.getElementById('btn-save-code').addEventListener('click', () => {
+  const codigo = document.getElementById('code-input').value;
+  const titulo = document.getElementById('code-titulo').value.trim() || 'Sem título';
+  const saidaAtual = document.getElementById('console-out').textContent;
+  if (!codigo.trim()) { toast('Não há código para salvar.', 'erro'); return; }
+  const status = document.getElementById('console-out').classList.contains('has-error') ? 'erro' : 'executado';
+
+  DB.addCodeSnapshot(alunoAtualId, { titulo, codigo, saida: saidaAtual, status }).then(() => {
+    toast('Código salvo no seu histórico. Seu tutor poderá revisá-lo.', 'ok');
+    carregarCodigos();
+  });
+});
+
+function carregarCodigos() {
+  DB.listCode(alunoAtualId).then(list => {
+    const el = document.getElementById('lista-codigo');
+    if (!list.length) {
+      el.innerHTML = '<div class="empty">Nenhum código salvo ainda. Teste algo no Debugator e clique em "Salvar no meu histórico".</div>';
+      return;
+    }
+    el.innerHTML = list.map(c => `
+      <div class="card">
+        <div class="card-row">
+          <div><h4>${escapeHtml(c.titulo)}</h4><span class="meta">${fmtData(c.criadoEm)}</span></div>
+          <span class="badge ${c.status === 'erro' ? 'badge-err' : 'badge-ok'}">${c.status === 'erro' ? 'com erro' : 'executado'}</span>
+        </div>
+        <div class="card-actions">
+          <button class="btn btn-ghost btn-sm" onclick="carregarNoEditor('${c.id}')">Abrir no editor</button>
+          <button class="btn btn-danger btn-sm" onclick="excluirCodigo('${c.id}')">Excluir</button>
+        </div>
+      </div>
+    `).join('');
+  });
+}
+
+window.carregarNoEditor = function (id) {
+  DB.listCode(alunoAtualId).then(list => {
+    const c = list.find(x => x.id === id);
+    if (!c) return;
+    document.getElementById('code-input').value = c.codigo;
+    document.getElementById('code-titulo').value = c.titulo;
+    document.getElementById('console-out').textContent = c.saida;
+    document.getElementById('panel-debugator').scrollIntoView({ behavior: 'smooth' });
+  });
+};
+
+window.excluirCodigo = function (id) {
+  if (!confirm('Excluir este código do seu histórico?')) return;
+  DB.deleteCodeSnapshot(id).then(() => { toast('Código excluído.'); carregarCodigos(); });
+};
+
+function carregarFeedback() {
+  DB.getStudent(alunoAtualId).then(s => {
+    const dial = document.getElementById('nota-geral-dial');
+    dial.querySelector('strong').textContent = (s.notaGeral === null || s.notaGeral === undefined) ? '—' : s.notaGeral;
+  });
+
+  DB.listFeedback(alunoAtualId).then(list => {
+    const el = document.getElementById('lista-feedback');
+    const lastSeen = localStorage.getItem('lab_lastseen_' + alunoAtualId);
+    const temNovo = list.some(f => !lastSeen || new Date(f.criadoEm) > new Date(lastSeen));
+    document.getElementById('dot-feedback').style.display = temNovo ? 'inline-block' : 'none';
+
+    if (!list.length) {
+      el.innerHTML = '<div class="empty">Seu tutor ainda não deixou comentários. Continue registrando suas práticas no caderno e testando códigos no Debugator.</div>';
+      return;
+    }
+    el.innerHTML = list.map(f => `
+      <div class="card">
+        <div class="card-row">
+          <div><h4>${tipoLabelAluno(f.tipo)}${f.refTitulo ? ' · ' + escapeHtml(f.refTitulo) : ''}</h4><span class="meta">${fmtData(f.criadoEm)}</span></div>
+          ${f.nota !== null && f.nota !== undefined ? `<span class="badge badge-new">nota ${f.nota}</span>` : ''}
+        </div>
+        <p>${escapeHtml(f.comentario)}</p>
+      </div>
+    `).join('');
+  });
+}
+function tipoLabelAluno(tipo) {
+  return { geral: 'Comentário geral', caderno: 'Sobre o caderno', codigo: 'Sobre o código' }[tipo] || 'Comentário';
+}
+
+/* =========================================================
+   PAINEL DO TUTOR
+   ========================================================= */
+let alunos = [];
+let alunoSelecionadoId = null;
+let subAbaAtual = 'geral';
+
+function initTutorView() {
+  carregarListaAlunos();
+  if (alunoSelecionadoId) renderDetalheAluno();
+}
+
+function carregarListaAlunos() {
+  DB.listStudents().then(lista => Promise.all(lista.map(a => DB.studentStats(a.id).then(st => ({ ...a, _stats: st })))))
+    .then(comStats => {
+      alunos = comStats;
+      renderListaAlunos(document.getElementById('busca-aluno').value);
+    });
+}
+
+function renderListaAlunos(filtro) {
+  const el = document.getElementById('lista-alunos');
+  const termo = (filtro || '').trim().toLowerCase();
+  const filtrados = alunos.filter(a => (a.nome + ' ' + a.sobrenome).toLowerCase().includes(termo));
+
+  if (!filtrados.length) {
+    el.innerHTML = `<div class="empty">${alunos.length ? 'Nenhum estudante encontrado.' : 'Ainda não há estudantes cadastrados. Quando um aluno se cadastrar, ele aparece aqui automaticamente.'}</div>`;
+    return;
+  }
+  el.innerHTML = filtrados.map(a => `
+    <button type="button" class="student-list-item ${a.id === alunoSelecionadoId ? 'active' : ''}" onclick="selecionarAluno('${a.id}')">
+      <div class="mini-avatar">${iniciais(a.nome, a.sobrenome)}</div>
+      <div class="name">${escapeHtml(a.nome)} ${escapeHtml(a.sobrenome)}
+        <small>${a._stats.totalNotebook} anotações · ${a._stats.totalCode} códigos</small>
+      </div>
+      ${a._stats.hasNew ? '<span class="badge badge-new">novo</span>' : ''}
+    </button>
+  `).join('');
+}
+
+document.getElementById('busca-aluno').addEventListener('input', e => renderListaAlunos(e.target.value));
+
+window.selecionarAluno = function (id) {
+  alunoSelecionadoId = id;
+  subAbaAtual = 'geral';
+  DB.markReviewed(id).then(carregarListaAlunos);
+  renderDetalheAluno();
+};
+
+function renderDetalheAluno() {
+  const aluno = alunos.find(a => a.id === alunoSelecionadoId);
+  const area = document.getElementById('area-detalhe');
+  if (!aluno) { area.innerHTML = ''; return; }
+
+  area.innerHTML = `
+    <div class="panel">
+      <span class="panel-tag">Fig. 09 — ${escapeHtml(aluno.nome)} ${escapeHtml(aluno.sobrenome)}</span>
+      <div class="student-detail-head">
+        <div>
+          <h2>${escapeHtml(aluno.nome)} ${escapeHtml(aluno.sobrenome)}</h2>
+          <span class="hint">cadastrado em ${fmtDataCurta(aluno.criadoEm)}</span>
+        </div>
+        <div class="grade-dial"><strong id="dial-nota">${aluno.notaGeral ?? '—'}</strong><span>NOTA GERAL</span></div>
+      </div>
+
+      <div class="sub-tabs">
+        <button class="sub-tab-btn ${subAbaAtual === 'geral' ? 'active' : ''}" data-sub="geral">Visão geral</button>
+        <button class="sub-tab-btn ${subAbaAtual === 'caderno' ? 'active' : ''}" data-sub="caderno">Caderno</button>
+        <button class="sub-tab-btn ${subAbaAtual === 'codigo' ? 'active' : ''}" data-sub="codigo">Debugator</button>
+        <button class="sub-tab-btn ${subAbaAtual === 'feedback' ? 'active' : ''}" data-sub="feedback">Histórico de feedback</button>
+      </div>
+
+      <div id="sub-conteudo"></div>
+    </div>
+  `;
+
+  area.querySelectorAll('.sub-tab-btn').forEach(b => b.addEventListener('click', () => {
+    subAbaAtual = b.dataset.sub;
+    renderDetalheAluno();
+  }));
+
+  renderSubAba(aluno);
+}
+
+function renderSubAba(aluno) {
+  const el = document.getElementById('sub-conteudo');
+  if (subAbaAtual === 'geral') return renderVisaoGeral(el, aluno);
+  if (subAbaAtual === 'caderno') return renderCadernoTutor(el, aluno);
+  if (subAbaAtual === 'codigo') return renderCodigoTutor(el, aluno);
+  if (subAbaAtual === 'feedback') return renderHistoricoFeedback(el, aluno);
+}
+
+function renderVisaoGeral(el, aluno) {
+  DB.studentStats(aluno.id).then(st => {
+    el.innerHTML = `
+      <div class="row" style="margin-bottom:20px;">
+        <div class="stat-box"><strong>${st.totalNotebook}</strong><span>anotações</span></div>
+        <div class="stat-box"><strong>${st.totalCode}</strong><span>códigos testados</span></div>
+        <div class="stat-box"><strong>${st.totalFeedback}</strong><span>comentários enviados</span></div>
+        <div class="stat-box"><strong>${st.lastActivity ? fmtDataCurta(st.lastActivity) : '—'}</strong><span>última atividade</span></div>
+      </div>
+
+      <div class="card">
+        <h4>Definir nota geral</h4>
+        <p class="muted" style="margin-bottom:10px;">Essa nota aparece no painel do estudante, na aba "Feedback do Tutor".</p>
+        <div class="row" style="align-items:center;">
+          <input type="number" id="input-nota-geral" min="0" max="10" step="0.5" value="${aluno.notaGeral ?? ''}" style="width:110px;padding:9px 10px;border-radius:2px;border:1px solid var(--paper-line);">
+          <button class="btn btn-amber btn-sm" id="btn-salvar-nota-geral">Salvar nota</button>
+        </div>
+      </div>
+
+      <div class="card feedback-form">
+        <h4>Comentário geral para ${escapeHtml(aluno.nome)}</h4>
+        <textarea id="comentario-geral" placeholder="Escreva uma orientação geral sobre o progresso do estudante..."></textarea>
+        <div style="margin-top:10px;"><button class="btn btn-cyan btn-sm" id="btn-enviar-geral">Enviar comentário</button></div>
+      </div>
+    `;
+
+    document.getElementById('btn-salvar-nota-geral').addEventListener('click', () => {
+      const v = document.getElementById('input-nota-geral').value;
+      const nota = v === '' ? null : parseFloat(v);
+      DB.setNotaGeral(aluno.id, nota).then(() => {
+        toast('Nota geral salva.', 'ok');
+        carregarListaAlunos();
+        const a2 = alunos.find(x => x.id === aluno.id);
+        if (a2) a2.notaGeral = nota;
+        const dial = document.getElementById('dial-nota');
+        if (dial) dial.textContent = nota ?? '—';
+      });
+    });
+
+    document.getElementById('btn-enviar-geral').addEventListener('click', () => {
+      const texto = document.getElementById('comentario-geral').value.trim();
+      if (!texto) { toast('Escreva um comentário antes de enviar.', 'erro'); return; }
+      DB.addFeedback(aluno.id, { tipo: 'geral', comentario: texto }).then(() => {
+        toast('Comentário enviado ao estudante.', 'ok');
+        document.getElementById('comentario-geral').value = '';
+      });
+    });
+  });
+}
+
+function renderCadernoTutor(el, aluno) {
+  DB.listNotebook(aluno.id).then(lista => {
+    if (!lista.length) { el.innerHTML = '<div class="empty">Este estudante ainda não fez anotações no caderno.</div>'; return; }
+    el.innerHTML = lista.map(en => `
+      <div class="card">
+        <div class="card-row">
+          <div><h4>${escapeHtml(en.titulo)}</h4><span class="meta">Atualizado em ${fmtData(en.atualizadoEm)}</span></div>
+        </div>
+        <p>${escapeHtml(en.conteudo)}</p>
+        <div class="card-actions">
+          <button class="btn btn-ghost btn-sm" onclick="toggleComentario('${en.id}')">Comentar</button>
+        </div>
+        <div id="comentario-box-${en.id}" style="display:none;margin-top:12px;">
+          <textarea id="comentario-texto-${en.id}" placeholder="Comentário sobre esta anotação..." style="width:100%;min-height:60px;padding:10px;border-radius:2px;border:1px solid var(--grid-line-strong);background:rgba(255,255,255,.05);color:var(--white);"></textarea>
+          <div style="margin-top:8px;"><button class="btn btn-cyan btn-sm" onclick="enviarComentarioItem('${aluno.id}','caderno','${en.id}', ${jsLit(en.titulo)})">Enviar</button></div>
+        </div>
+      </div>
+    `).join('');
+  });
+}
+
+function renderCodigoTutor(el, aluno) {
+  DB.listCode(aluno.id).then(lista => {
+    if (!lista.length) { el.innerHTML = '<div class="empty">Este estudante ainda não salvou nenhum código.</div>'; return; }
+    el.innerHTML = lista.map(c => `
+      <div class="card">
+        <div class="card-row">
+          <div><h4>${escapeHtml(c.titulo)}</h4><span class="meta">${fmtData(c.criadoEm)}</span></div>
+          <span class="badge ${c.status === 'erro' ? 'badge-err' : 'badge-ok'}">${c.status === 'erro' ? 'com erro' : 'executado'}</span>
+        </div>
+        <div class="card-actions"><button class="btn btn-ghost btn-sm" onclick="toggleCodigo('${c.id}')">Ver código e saída</button></div>
+        <div id="codigo-box-${c.id}" style="display:none;margin-top:12px;">
+          <pre class="console-out" style="color:#D8F0E8;">${escapeHtml(c.codigo)}</pre>
+          <div class="console-out ${c.status === 'erro' ? 'has-error' : ''}" style="margin-top:8px;">${escapeHtml(c.saida)}</div>
+          <textarea id="comentario-texto-${c.id}" placeholder="Comentário sobre este código..." style="width:100%;min-height:60px;margin-top:10px;padding:10px;border-radius:2px;border:1px solid var(--grid-line-strong);background:rgba(255,255,255,.05);color:var(--white);"></textarea>
+          <div style="margin-top:8px;"><button class="btn btn-cyan btn-sm" onclick="enviarComentarioItem('${aluno.id}','codigo','${c.id}', ${jsLit(c.titulo)})">Enviar comentário</button></div>
+        </div>
+      </div>
+    `).join('');
+  });
+}
+
+function renderHistoricoFeedback(el, aluno) {
+  DB.listFeedback(aluno.id).then(lista => {
+    if (!lista.length) { el.innerHTML = '<div class="empty">Nenhum comentário enviado a este estudante ainda.</div>'; return; }
+    el.innerHTML = lista.map(f => `
+      <div class="card">
+        <div class="card-row">
+          <div><h4>${tipoLabelTutor(f.tipo)}${f.refTitulo ? ' · ' + escapeHtml(f.refTitulo) : ''}</h4><span class="meta">${fmtData(f.criadoEm)}</span></div>
+          <button class="btn btn-danger btn-sm" onclick="excluirFeedback('${aluno.id}','${f.id}')">Excluir</button>
+        </div>
+        <p>${escapeHtml(f.comentario)}</p>
+      </div>
+    `).join('');
+  });
+}
+function tipoLabelTutor(tipo) {
+  return { geral: 'Comentário geral', caderno: 'Sobre o caderno', codigo: 'Sobre o código' }[tipo] || 'Comentário';
+}
+
+window.toggleComentario = function (id) {
+  const box = document.getElementById('comentario-box-' + id);
+  box.style.display = box.style.display === 'none' ? 'block' : 'none';
+};
+window.toggleCodigo = function (id) {
+  const box = document.getElementById('codigo-box-' + id);
+  box.style.display = box.style.display === 'none' ? 'block' : 'none';
+};
+window.enviarComentarioItem = function (studentId, tipo, refId, refTitulo) {
+  const textarea = document.getElementById('comentario-texto-' + refId);
+  const texto = textarea.value.trim();
+  if (!texto) { toast('Escreva um comentário antes de enviar.', 'erro'); return; }
+  DB.addFeedback(studentId, { tipo, refId, refTitulo, comentario: texto }).then(() => {
+    toast('Comentário enviado.', 'ok');
+    textarea.value = '';
+  });
+};
+window.excluirFeedback = function (studentId, feedbackId) {
+  if (!confirm('Excluir este comentário do histórico do estudante?')) return;
+  DB.deleteFeedback(feedbackId).then(() => { toast('Comentário excluído.'); renderDetalheAluno(); });
+};
+
+/* =========================================================
+   PONTO DE ENTRADA — decide qual tela mostrar ao abrir o site
+   ========================================================= */
+(function start() {
+  const sid = getSessionStudent();
+  if (sid) {
+    DB.getStudent(sid).then(s => {
+      if (s) { initAlunoView(sid); showView('aluno'); }
+      else { clearSessionStudent(); showView('landing'); }
+    });
+  } else {
+    showView('landing');
+  }
+})();
+</script>
+</body>
+</html>
